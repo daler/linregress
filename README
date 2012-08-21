@@ -1,0 +1,22 @@
+``linregress``
+--------------
+Small wrapper class for using R's linear regression functionality in Python,
+via `rpy2 <http://rpy.sourceforge.net/rpy2.html rpy2>`_.
+
+Example usage::
+
+    >>> x = [1, 2, 3, 4]
+    >>> y = [1.2, 3, 7, 10]
+    >>> m = LinearRegression(x=x, y=y, formula='y~x')
+    >>> m.slope
+    3.0399999999999996
+
+    >>> m.intercept
+    -2.299999999999998
+
+    >>> m.adj_r_squared
+    0.97221750212404412
+
+    # t-tests using std err allow testing to different expected values
+    >>> m.slope_pval(compare_to=0)
+    0.0093041159117684229
