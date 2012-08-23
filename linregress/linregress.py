@@ -76,6 +76,11 @@ class LinearRegression(object):
         coeffs = self.summary.rx2('coefficients')
         self._intercept_p, self._slope_p = coeffs[6], coeffs[7]
 
+    def __str__(self):
+        return "y=%.2fx%+.2f (R2=%.2f, p[slope]=%.2e, p[intercept]=%.2e)" \
+                % (self.slope, self.intercept, self.r_squared,
+                        self.slope_pval(), self.intercept_pval())
+
     @property
     def intercept(self):
         return self.summary.rx2('coefficients')[0]
