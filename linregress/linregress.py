@@ -151,6 +151,70 @@ def rclose():
     grdevices.dev_off()
 
 
+def ancova(lm1, lm2,  names=('lm1', 'lm2')):
+    """
+    Compares the slopes and intercepts of two linear models.  Currently this is
+    quite limited in that it only compares single-variable linear models that
+    have `x` and `y` attributes.
+
+    Returns (pval of slope difference, pval of intercept difference).
+
+    Recall that if the slope is significant, you can't really say anything
+    about the intercept.
+
+    """
+    # R code, from the extremely useful blog:
+    # http://r-eco-evo.blogspot.com/2011/08/
+    #           comparing-two-regression-slopes-by.html
+    #
+    # model1 = aov(y~x*factor, data=df)
+    # (interaction term on summary(model1)'s 3rd table line)
+    #
+    # model2 = aov(y~x+factor, data=df)
+    # (2nd table line for "factor" in summary(model2) is the sig of intercept
+    # diff)
+    #
+    # anova(model1, model2)
+    #  does removing the interaction term affect the model fit?
+
+    # Construct variables suitable for ANOVA/ANCOVA
+    label1 = [names[0] for i in lm1.x]
+    label2 = [names[1] for i in lm2.x]
+    labels = r.factor(np.array(label1 + label2))
+    xi = np.concatenate((lm1.x, lm2.x))
+    yi = np.concatenate((lm1.y, lm2.y))
+
+    # The workflow is to populate the formula as a separate environment.
+    # This first formula includes the interaction term
+    fmla1 = robjects.Formula('yi~xi*labels')
+    fmla1.environment['xi'] = xi
+    fmla1.environment['yi'] = yi
+    fmla1.environment['labels'] = labels
+    result1 = r('aov(%s)' % fmla1.r_repr())
+    interaction_pval = r.summary(result1)[0].rx2('Pr(>F)')[2]
+
+    # No interaction term
+    fmla2 = robjects.Formula('yi~xi+labels')
+    fmla2.environment['xi'] = xi
+    fmla2.environment['yi'] = yi
+    fmla2.environment['labels'] = labels
+    result2 = r('aov(%s)' % fmla2.r_repr())
+    intercept_pval = r.summary(result2)[0].rx2('Pr(>F)')[1]
+
+    # TODO: anova(result1, result2)?
+
+    return interaction_pval, intercept_pval
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
+
+    x = [1, 2, 3, 4]
+    y = [1.2, 3, 7, 10]
+    m = LinearRegression(x=x, y=y, formula='y~x')
+
+    x2 = [2, 4, 7, 9]
+    y2 = [-1, -4, -6, -10]
+    m2 = LinearRegression(x=x2, y=y2, formula='y~x')
+
+    result = ancova(m, m2)
