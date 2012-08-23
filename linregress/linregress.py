@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import rpy2.robjects as robjects
 from rpy2.robjects.numpy2ri import numpy2ri
@@ -131,17 +132,32 @@ class LinearRegression(object):
 
     def diagnostics(self, fn=None):
         """
-        Plot diagnostics for the regression.  If `fn` is provided, then save as
-        a PDF.
+        Plot diagnostics for the regression.  If `fn` is provided, then save
+        the results to file.  The filetype to be saved is determined by the
+        extension.
+
+        Additional kwargs are passed to the saving function (e.g., width=10)
         """
+        d = {
+                '.pdf': grdevices.pdf,
+                '.png': grdevices.png
+            }
+
+        if fn:
+            ext = os.path.splitext(fn)[1]
+            try:
+                saver_func = d[ext]
+            except KeyError:
+                raise ValueError('extension "%s" not supported, '
+                        'please use one of %s' % (ext, d.keys()))
+            saver_func(file=fn)
+
         r.layout(r.matrix([1, 2, 3, 4], 2, 2))
-        if fn:
-            grdevices.pdf(file=fn)
         r.plot(self.lm)
+
         if fn:
             rclose()
-            rclose()
-        return fn
+        return
 
 
 def rclose():
