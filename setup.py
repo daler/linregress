@@ -15,7 +15,7 @@ Package for managing linear regression in R, via Python (and Rpy2)
 setup(
         name="linregress",
         version=version,
-        install_requires=[],
+        install_requires=['numpy', 'rpy2'],
         packages=['linregress',
                   'linregress.test',
                   'linregress.test.data',
